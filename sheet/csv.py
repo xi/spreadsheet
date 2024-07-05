@@ -31,6 +31,9 @@ def dump_csv(sheet, fh, *, display=False, **kwargs):
     else:
         get = sheet.get_raw
 
+    width = max(cell[0] for cell in sheet.raw) + 1
+    height = max(cell[1] for cell in sheet.raw) + 1
+
     w = csv.writer(fh, **kwargs)
-    for y in range(sheet.height):
-        w.writerow([get((x, y)) for x in range(sheet.width)])
+    for y in range(height):
+        w.writerow([get((x, y)) for x in range(width)])

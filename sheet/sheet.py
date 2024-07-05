@@ -35,8 +35,6 @@ class Sheet:
         self.raw = {}
         self.parsed = {}
         self.cache = {}
-        self.width = 0
-        self.height = 0
 
     def parse(self, raw: str) -> tuple|float|int|str:
         if raw.startswith('='):
@@ -95,13 +93,9 @@ class Sheet:
             self.raw[cell] = raw
             self.parsed[cell] = self.parse(raw)
             x, y = cell
-            self.width = max(self.width, x + 1)
-            self.height = max(self.height, y + 1)
         elif cell in self.raw:
             del self.raw[cell]
             del self.parsed[cell]
-            self.width = max(cell[0] for cell in self.raw) + 1
-            self.height = max(cell[1] for cell in self.raw) + 1
         self.cache = {}
 
     def get_raw(self, cell) -> str:
