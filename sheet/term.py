@@ -1,6 +1,4 @@
-from .sheet import ref2xy
-from .sheet import x2col
-from .sheet import xy2ref
+from .expression import x2col
 
 
 def align_right(s, width):
@@ -44,7 +42,7 @@ def to_cell(value: float|int|str|None|Exception, width: int) -> str:
 
 
 def render(sheet, width, height, cell_offset, cell_width):
-    x0, y0 = ref2xy(cell_offset)
+    x0, y0 = cell_offset
     rows = []
     w = width // cell_width
     rows.append([
@@ -57,7 +55,7 @@ def render(sheet, width, height, cell_offset, cell_width):
         rows.append([
             align_right(str(y0 + dy + 1), cell_width),
         ] + [
-            to_cell(sheet.get_value(xy2ref(x0 + dx, y0 + dy)), cell_width)
+            to_cell(sheet.get_value((x0 + dx, y0 + dy)), cell_width)
             for dx in range(w - 1)
         ])
     return '\n'.join([''.join(row) for row in rows])

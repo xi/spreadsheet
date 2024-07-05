@@ -1,4 +1,5 @@
 import re
+import string
 
 
 class ParseError(ValueError):
@@ -36,9 +37,30 @@ def parse_int(text):
     return ('int', int(m[0], 10)), tail
 
 
+def col2x(col):
+    alph = string.ascii_uppercase
+    x = -1
+    for c in col:
+        x = (x + 1) * len(alph) + alph.index(c)
+    return x
+
+
+def x2col(x):
+    a, b = divmod(x, len(string.ascii_uppercase))
+    s = string.ascii_uppercase[b]
+    while a:
+        a, b = divmod(a - 1, len(string.ascii_uppercase))
+        s = string.ascii_uppercase[b] + s
+    return s
+
+
 def parse_ref(text):
-    m, tail = parse_re(text, r'\$?([A-Z]+)\$?([1-9][0-9]*)')
-    return ('ref', m[1] + m[2], m[0]), tail
+    m, tail = parse_re(text, r'(\$)?([A-Z]+)(\$)?([1-9][0-9]*)')
+    x_fixed = bool(m[1])
+    x = col2x(m[2])
+    y_fixed = bool(m[3])
+    y = int(m[4], 10) - 1
+    return ('ref', (x, y), (x_fixed, y_fixed)), tail
 
 
 def parse_range(text):

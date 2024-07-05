@@ -5,42 +5,16 @@ from .expression import ParseError
 from .expression import parse
 
 
-def x2col(x):
-    a, b = divmod(x, len(string.ascii_uppercase))
-    s = string.ascii_uppercase[b]
-    while a:
-        a, b = divmod(a - 1, len(string.ascii_uppercase))
-        s = string.ascii_uppercase[b] + s
-    return s
-
-
-def xy2ref(x, y):
-    return x2col(x) + str(y + 1)
-
-
-def col2x(col):
-    alph = string.ascii_uppercase
-    x = -1
-    for c in col:
-        x = (x + 1) * len(alph) + alph.index(c)
-    return x
-
-
-def ref2xy(ref):
-    m = re.match('([A-Z]*)([0-9]*)', ref)
-    return col2x(m[1]), int(m[2], 10) - 1
-
-
 def iter_range(cell1, cell2):
-    x1, y1 = ref2xy(cell1)
-    x2, y2 = ref2xy(cell2)
+    x1, y1 = cell1
+    x2, y2 = cell2
     if x1 > x2:
         x1, x2 = x2, x1
     if y1 > y2:
         y1, y2 = y2, y1
     for y in range(y1, y2 + 1):
         for x in range(x1, x2 + 1):
-            yield xy2ref(x, y)
+            yield x, y
 
 
 def to_number(value: float|int|str|None|Exception) -> float|int:
@@ -116,27 +90,27 @@ class Sheet:
         else:
             return self.call_function(*expr)
 
-    def set(self, cell: str, raw: str):
+    def set(self, cell, raw: str):
         if raw:
             self.raw[cell] = raw
             self.parsed[cell] = self.parse(raw)
-            x, y = ref2xy(cell)
+            x, y = cell
             self.width = max(self.width, x + 1)
             self.height = max(self.height, y + 1)
         elif cell in self.raw:
             del self.raw[cell]
             del self.parsed[cell]
-            self.width = max(ref2xy(cell)[0] for cell in self.raw) + 1
-            self.height = max(ref2xy(cell)[1] for cell in self.raw) + 1
+            self.width = max(cell[0] for cell in self.raw) + 1
+            self.height = max(cell[1] for cell in self.raw) + 1
         self.cache = {}
 
-    def get_raw(self, cell: str) -> str:
+    def get_raw(self, cell) -> str:
         return self.raw.get(cell, '')
 
-    def get_parsed(self, cell: str) -> tuple|float|int|str|None:
+    def get_parsed(self, cell) -> tuple|float|int|str|None:
         return self.parsed.get(cell)
 
-    def get_value(self, cell: str) -> float|int|str|None|Exception:
+    def get_value(self, cell) -> float|int|str|None|Exception:
         parsed = self.get_parsed(cell)
         if isinstance(parsed, tuple):
             if cell not in self.cache:
