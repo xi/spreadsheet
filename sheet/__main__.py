@@ -57,7 +57,11 @@ class App(boon.App):
 
         lines.append(' ' * 4)
         x = self.x0
-        while len(lines[-1]) < cols:
+        width = 4
+        while True:
+            width += self.get_width(x)
+            if width > cols:
+                break
             row_head = align_center(x2col(x), self.get_width(x))
             if x == self.cursor_x:
                 row_head = invert(row_head)
@@ -73,9 +77,11 @@ class App(boon.App):
             lines.append(col_head)
 
             x = self.x0
-            # FIXME: do not count ANSI codes for length
-            # FIXME; lines are longer than they should be (we stop once we are >=)
-            while len(lines[-1]) < cols:
+            width = 4
+            while True:
+                width += self.get_width(x)
+                if width > cols:
+                    break
                 value = self.sheet.get_value((x, y))
                 cell = to_cell(value, self.get_width(x))
                 if x == self.cursor_x and y == self.cursor_y:
