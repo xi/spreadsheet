@@ -24,17 +24,17 @@ def parse_re(text, pattern):
 
 def parse_string(text):
     m, tail = parse_re(text, r'"[^"]*"')
-    return ('str', m[0][1:-1]), tail
+    return ('str', m[0][1:-1], m[0]), tail
 
 
 def parse_float(text):
     m, tail = parse_re(text, r'[0-9]+\.[0-9]+')
-    return ('float', float(m[0])), tail
+    return ('float', float(m[0]), m[0]), tail
 
 
 def parse_int(text):
     m, tail = parse_re(text, r'[0-9]+')
-    return ('int', int(m[0], 10)), tail
+    return ('int', int(m[0], 10), m[0]), tail
 
 
 def col2x(col):
@@ -74,21 +74,23 @@ def parse_brace(text):
     _, tail = parse_re(text, r'\(')
     exp, tail = parse_expression(tail)
     _, tail = parse_re(tail, r'\)')
-    return exp, tail
+    return ('brace', exp), tail
 
 
 def parse_call(text):
     m, tail = parse_re(text, r'[a-zA-Z][a-zA-Z0-9]*')
     _, tail = parse_re(tail, r'\(')
     args = []
+    commas = []
     if tail.startswith(')'):
-        return (m[0], args), tail[1:]
+        return (m[0], args, commas), tail[1:]
     while True:
         arg, tail = parse_expression(tail)
         args.append(arg)
         if tail.startswith(')'):
-            return (m[0], args), tail[1:]
-        _, tail = parse_re(tail, r',\s*')
+            return (m[0], args, commas), tail[1:]
+        c, tail = parse_re(tail, r',\s*')
+        commas.append(c[0])
     raise ParseError('no closing brace on function call')
 
 
@@ -112,7 +114,7 @@ def parse_expression2(text):
         except ParseError:
             break
         rhs, tail = parse_expression3(tail)
-        lhs = m[0].strip(), lhs, rhs
+        lhs = m[0].strip(), lhs, rhs, m[0]
     return lhs, tail
 
 
@@ -124,7 +126,7 @@ def parse_expression(text):
         except ParseError:
             break
         rhs, tail = parse_expression2(tail)
-        lhs = m[0].strip(), lhs, rhs
+        lhs = m[0].strip(), lhs, rhs, m[0]
     return lhs, tail
 
 
@@ -133,3 +135,32 @@ def parse(text):
     if tail:
         raise ParseError(f'unexpected tail: {tail}')
     return expr
+
+
+def unparse(expr):
+    if expr[0] in ['str', 'float', 'int']:
+        return expr[2]
+    elif expr[0] == 'ref':
+        s = ''
+        if expr[2][0]:
+            s += '$'
+        s += x2col(expr[1][0])
+        if expr[2][1]:
+            s += '$'
+        s += str(expr[1][1] + 1)
+        return s
+    elif expr[0] == 'range':
+        return unparse(expr[1]) + ':' + unparse(expr[2])
+    elif expr[0] == 'brace':
+        return '(' + unparse(expr[1]) + ')'
+    elif expr[0] in '+-*/':
+        return unparse(expr[1]) + expr[3] + unparse(expr[2])
+    else:
+        name, args, commas = expr
+        assert len(args) == len(commas) + 1
+        sargs = ''
+        if args:
+            for i, comma in enumerate(commas):
+                sargs += unparse(args[i]) + comma
+            sargs += unparse(args[-1])
+        return f'{name}({sargs})'

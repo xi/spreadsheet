@@ -52,7 +52,7 @@ class Sheet:
             pass
         return raw
 
-    def call_function(self, name: str, args: list[tuple]) -> float|int|str:
+    def call_function(self, name: str, args: list[tuple], _commas: list[str]) -> float|int|str:
         if name == 'sum':
             if len(args) != 1 or args[0][0] != 'range':
                 raise ValueError(args)
@@ -75,6 +75,8 @@ class Sheet:
             return expr[1]
         elif expr[0] == 'ref':
             return self.get_value(expr[1])
+        elif expr[0] == 'brace':
+            return self.evaluate(expr[1])
         elif expr[0] == 'err':
             raise expr[1]
         elif expr[0] == '+':
