@@ -113,44 +113,38 @@ class App(boon.App):
     def cancel_input(self):
         self.input = None
 
-    def maybe_submit_input(self):
-        if self.input:
-            if self.input.full:
-                return False
-            else:
-                self.submit_input()
-        return True
-
     def on_key(self, key):
-        if key == boon.KEY_DOWN:
-            if self.maybe_submit_input():
-                self.cursor_y += 1
-        elif key == boon.KEY_UP:
-            if self.maybe_submit_input():
-                self.cursor_y = max(self.cursor_y - 1, 0)
-        elif key == boon.KEY_NPAGE:
-            if self.maybe_submit_input():
-                self.cursor_y += self.rows - 3
-        elif key == boon.KEY_PPAGE:
-            if self.maybe_submit_input():
-                self.cursor_y = max(self.cursor_y - (self.rows - 3), 0)
-        elif key == boon.KEY_RIGHT:
-            if self.maybe_submit_input():
-                self.cursor_x += 1
-        elif key == boon.KEY_LEFT:
-            if self.maybe_submit_input():
-                self.cursor_x = max(self.cursor_x - 1, 0)
-
         if self.input:
-            self.input.on_key(key)
+            if not self.input.full and key in [
+                boon.KEY_DOWN,
+                boon.KEY_UP,
+                boon.KEY_NPAGE,
+                boon.KEY_PPAGE,
+                boon.KEY_RIGHT,
+                boon.KEY_LEFT,
+            ]:
+                self.submit_input()
+                self.on_key(key)
+            else:
+                self.input.on_key(key)
         elif key == 'q':
             self.running = False
+        elif key == boon.KEY_DOWN:
+            self.cursor_y += 1
+        elif key == boon.KEY_UP:
+            self.cursor_y = max(self.cursor_y - 1, 0)
+        elif key == boon.KEY_NPAGE:
+            self.cursor_y += self.rows - 3
+        elif key == boon.KEY_PPAGE:
+            self.cursor_y = max(self.cursor_y - (self.rows - 3), 0)
+        elif key == boon.KEY_RIGHT:
+            self.cursor_x += 1
+        elif key == boon.KEY_LEFT:
+            self.cursor_x = max(self.cursor_x - 1, 0)
         elif key == '>':
             self.change_width(self.cursor_x, 1)
         elif key == '<':
             self.change_width(self.cursor_x, -1)
-        # elif key == '=':
-        #     self.set_width(self.cursor_x, max()  # TODO auto width
         elif key == '\n':
             raw = self.sheet.get_raw((self.cursor_x, self.cursor_y))
             self.input = Input(raw, self.submit_input, self.cancel_input, full=True)
