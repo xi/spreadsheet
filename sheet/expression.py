@@ -77,20 +77,6 @@ def parse_brace(text):
     return exp, tail
 
 
-def parse_add(text):
-    lhs, tail = parse_expression2(text)
-    m, tail = parse_re(tail, r'\s*[-+]\s*')
-    rhs, tail = parse_expression(tail)
-    return (m[0].strip(), lhs, rhs), tail
-
-
-def parse_mul(text):
-    lhs, tail = parse_expression3(text)
-    m, tail = parse_re(tail, r'\s*[*/]\s*')
-    rhs, tail = parse_expression2(tail)
-    return (m[0].strip(), lhs, rhs), tail
-
-
 def parse_call(text):
     m, tail = parse_re(text, r'[a-zA-Z][a-zA-Z0-9]*')
     _, tail = parse_re(tail, r'\(')
@@ -119,17 +105,27 @@ def parse_expression3(text):
 
 
 def parse_expression2(text):
-    return parse_any(text, [
-        parse_mul,
-        parse_expression3,
-    ])
+    lhs, tail = parse_expression3(text)
+    while True:
+        try:
+            m, tail = parse_re(tail, r'\s*[*/]\s*')
+        except ParseError:
+            break
+        rhs, tail = parse_expression3(tail)
+        lhs = m[0].strip(), lhs, rhs
+    return lhs, tail
 
 
 def parse_expression(text):
-    return parse_any(text, [
-        parse_add,
-        parse_expression2,
-    ])
+    lhs, tail = parse_expression2(text)
+    while True:
+        try:
+            m, tail = parse_re(tail, r'\s*[-+]\s*')
+        except ParseError:
+            break
+        rhs, tail = parse_expression2(tail)
+        lhs = m[0].strip(), lhs, rhs
+    return lhs, tail
 
 
 def parse(text):
