@@ -1,5 +1,3 @@
-import re
-import string
 
 from .expression import ParseError
 from .expression import parse

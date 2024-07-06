@@ -5,13 +5,13 @@ import boon
 from .csv import load_csv
 from .expression import x2col
 from .input import Input
+from .sheet import iter_range
 from .term import align_center
 from .term import align_left
 from .term import align_right
+from .term import blue
 from .term import invert
 from .term import red
-from .term import blue
-from .sheet import iter_range
 
 
 def to_cell(value: float|int|str|None|Exception, width: int) -> str:
