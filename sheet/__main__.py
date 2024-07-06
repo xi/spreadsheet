@@ -189,7 +189,7 @@ class App(boon.App):
         elif key == '\n':
             raw = self.sheet.get_raw(self.cursor)
             self.input = Input(raw, self.submit_input, self.cancel_input, full=True)
-        elif key in '=0123456789':
+        elif key in '-=0123456789':
             self.input = Input(key, self.submit_input, self.cancel_input, full=False)
         elif key == boon.KEY_DEL:
             self.sheet.set(self.cursor, '')
