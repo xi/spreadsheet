@@ -78,13 +78,21 @@ class Sheet:
         elif expr[0] == 'err':
             raise expr[1]
         elif expr[0] == '+':
-            return self.evaluate(expr[1]) + self.evaluate(expr[2])
+            lhs = to_number(self.evaluate(expr[1]))
+            rhs = to_number(self.evaluate(expr[2]))
+            return lhs + rhs
         elif expr[0] == '-':
-            return self.evaluate(expr[1]) - self.evaluate(expr[2])
+            lhs = to_number(self.evaluate(expr[1]))
+            rhs = to_number(self.evaluate(expr[2]))
+            return lhs - rhs
         elif expr[0] == '*':
-            return self.evaluate(expr[1]) * self.evaluate(expr[2])
+            lhs = to_number(self.evaluate(expr[1]))
+            rhs = to_number(self.evaluate(expr[2]))
+            return lhs * rhs
         elif expr[0] == '/':
-            return self.evaluate(expr[1]) / self.evaluate(expr[2])
+            lhs = to_number(self.evaluate(expr[1]))
+            rhs = to_number(self.evaluate(expr[2]))
+            return lhs / rhs
         else:
             return self.call_function(*expr)
 
