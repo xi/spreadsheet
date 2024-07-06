@@ -164,3 +164,23 @@ def unparse(expr):
                 sargs += unparse(args[i]) + comma
             sargs += unparse(args[-1])
         return f'{name}({sargs})'
+
+
+def shift_refs(expr, d):
+    if expr[0] == 'ref':
+        x, y = expr[1]
+        if not expr[2][0]:
+            x += d[0]
+        if not expr[2][1]:
+            y += d[1]
+        return 'ref', (x, y), expr[2]
+    elif expr[0] in ['str', 'float', 'int']:
+        return expr
+    elif expr[0] == 'range':
+        return 'range', shift_refs(expr[1], d), shift_refs(expr[2], d)
+    elif expr[0] == 'brace':
+        return 'brace', shift_refs(expr[1], d)
+    elif expr[0] in '+-*/':
+        return expr[0], shift_refs(expr[1], d), shift_refs(expr[2], d), expr[3]
+    else:
+        return expr[0], [shift_refs(arg, d) for arg in expr[1]], expr[2]
