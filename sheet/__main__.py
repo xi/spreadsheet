@@ -131,10 +131,10 @@ class App(boon.App):
                 self.cursor_y = max(self.cursor_y - 1, 0)
         elif key == boon.KEY_NPAGE:
             if self.maybe_submit_input():
-                self.cursor_y += 20  # TODO: relativ to rows
+                self.cursor_y += self.rows - 3
         elif key == boon.KEY_PPAGE:
             if self.maybe_submit_input():
-                self.cursor_y = max(self.cursor_y - 20, 0)
+                self.cursor_y = max(self.cursor_y - (self.rows - 3), 0)
         elif key == boon.KEY_RIGHT:
             if self.maybe_submit_input():
                 self.cursor_x += 1
