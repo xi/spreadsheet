@@ -3,6 +3,16 @@ from .expression import ParseError
 from .expression import parse
 
 
+class Bar:
+    def __init__(self, value):
+        self.value = value
+
+    def render(self, width):
+        x = int(self.value * width)
+        x = max(0, min(x, width))
+        return '#' * x + ' ' * (width - x)
+
+
 def iter_range(cell1, cell2):
     x1, y1 = cell1
     x2, y2 = cell2
@@ -15,13 +25,15 @@ def iter_range(cell1, cell2):
             yield x, y
 
 
-def to_number(value: float|int|str|None|Exception) -> float|int:
+def to_number(value: float|int|str|Bar|None|Exception) -> float|int:
     if isinstance(value, float):
         return value
     elif isinstance(value, int):
         return value
     elif isinstance(value, str):
         raise TypeError(value)
+    elif isinstance(value, Bar):
+        return value.value
     elif value is None:
         return 0
     elif isinstance(value, Exception):
@@ -50,7 +62,9 @@ class Sheet:
             pass
         return raw
 
-    def call_function(self, name: str, args: list[tuple], _commas: list[str]) -> float|int|str:
+    def call_function(
+        self, name: str, args: list[tuple], _commas: list[str]
+    ) -> float|int|str|Bar:
         if name == 'sum':
             if len(args) != 1 or args[0][0] != 'range':
                 raise ValueError(args)
@@ -65,10 +79,14 @@ class Sheet:
             base = to_number(self.evaluate(args[0]))
             exp = to_number(self.evaluate(args[1]))
             return base ** exp
+        elif name == 'bar':
+            if len(args) != 1:
+                raise ValueError(args)
+            return Bar(to_number(self.evaluate(args[0])))
         else:
             raise NameError(name)
 
-    def evaluate(self, expr: tuple) -> float|int|str:
+    def evaluate(self, expr: tuple) -> float|int|str|Bar:
         if expr[0] in ['int', 'float', 'str']:
             return expr[1]
         elif expr[0] == 'ref':
@@ -112,7 +130,7 @@ class Sheet:
     def get_parsed(self, cell) -> tuple|float|int|str|None:
         return self.parsed.get(cell)
 
-    def get_value(self, cell) -> float|int|str|None|Exception:
+    def get_value(self, cell) -> float|int|str|Bar|None|Exception:
         parsed = self.get_parsed(cell)
         if isinstance(parsed, tuple):
             if cell not in self.cache:

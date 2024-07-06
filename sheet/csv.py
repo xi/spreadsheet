@@ -1,15 +1,18 @@
 import csv
 
+from .sheet import Bar
 from .sheet import Sheet
 
 
-def to_display(value: float|int|str|None|Exception) -> str:
+def to_display(value: float|int|str|Bar|None|Exception) -> str:
     if isinstance(value, float):
         return str(value)
     elif isinstance(value, int):
         return str(value)
     elif isinstance(value, str):
         return value
+    elif isinstance(value, Bar):
+        return value.render(10)
     elif value is None:
         return ''
     elif isinstance(value, Exception):

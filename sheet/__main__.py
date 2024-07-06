@@ -7,6 +7,7 @@ from .expression import shift_refs
 from .expression import unparse
 from .expression import x2col
 from .input import Input
+from .sheet import Bar
 from .sheet import iter_range
 from .term import align_center
 from .term import align_left
@@ -22,6 +23,8 @@ def to_cell(value: float|int|str|None|Exception, width: int) -> str:
         return align_right(s, width)
     elif isinstance(value, str):
         return align_left(value, width)
+    elif isinstance(value, Bar):
+        return value.render(width)
     elif value is None:
         return ' ' * width
     elif isinstance(value, Exception):
