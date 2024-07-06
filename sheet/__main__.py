@@ -10,6 +10,8 @@ from .term import align_left
 from .term import align_right
 from .term import invert
 from .term import red
+from .term import blue
+from .sheet import iter_range
 
 
 def to_cell(value: float|int|str|None|Exception, width: int) -> str:
@@ -35,6 +37,7 @@ class App(boon.App):
         self.cursor_y = 0
         self.widths = {}
         self.input = None
+        self.drag = None
 
     @property
     def cursor(self):
@@ -88,6 +91,14 @@ class App(boon.App):
                     break
                 value = self.sheet.get_value((x, y))
                 cell = to_cell(value, self.get_width(x))
+                if (
+                    self.drag
+                    and min(self.cursor_x, self.drag[0]) <= x
+                    and x <= max(self.cursor_x, self.drag[0])
+                    and min(self.cursor_y, self.drag[1]) <= y
+                    and y <= max(self.cursor_y, self.drag[1])
+                ):
+                    cell = blue(cell)
                 if x == self.cursor_x and y == self.cursor_y:
                     cell = invert(cell)
                 lines[-1] += cell
@@ -117,6 +128,16 @@ class App(boon.App):
     def cancel_input(self):
         self.input = None
 
+    def submit_drag(self):
+        value = self.sheet.get_raw(self.drag)
+        for x, y in iter_range(self.cursor, self.drag):
+            # TODO: modify references in expression
+            self.sheet.set((x, y), value)
+        self.drag = None
+
+    def cancel_drag(self):
+        self.drag = None
+
     def on_key(self, key):
         if self.input:
             if not self.input.full and key in [
@@ -145,6 +166,11 @@ class App(boon.App):
             self.cursor_x += 1
         elif key == boon.KEY_LEFT:
             self.cursor_x = max(self.cursor_x - 1, 0)
+        elif self.drag is not None:
+            if key == '\n':
+                self.submit_drag()
+            elif key == boon.KEY_ESC:
+                self.cancel_drag()
         elif key == '>':
             self.change_width(self.cursor_x, 1)
         elif key == '<':
@@ -156,6 +182,8 @@ class App(boon.App):
             self.input = Input(key, self.submit_input, self.cancel_input, full=False)
         elif key == boon.KEY_DEL:
             self.sheet.set(self.cursor, '')
+        elif key == '#':
+            self.drag = self.cursor
 
 
 app = App()

@@ -21,5 +21,9 @@ def red(s):
     return f'\033[31m{s}\033[0m'
 
 
+def blue(s):
+    return f'\033[34m{s}\033[0m'
+
+
 def invert(s):
     return f'\033[7m{s}\033[0m'
