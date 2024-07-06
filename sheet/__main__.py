@@ -3,6 +3,8 @@ import sys
 import boon
 
 from .csv import load_csv
+from .expression import shift_refs
+from .expression import unparse
 from .expression import x2col
 from .input import Input
 from .sheet import iter_range
@@ -129,10 +131,16 @@ class App(boon.App):
         self.input = None
 
     def submit_drag(self):
-        value = self.sheet.get_raw(self.drag)
-        for x, y in iter_range(self.cursor, self.drag):
-            # TODO: modify references in expression
-            self.sheet.set((x, y), value)
+        raw = self.sheet.get_raw(self.drag)
+        if raw.startswith('='):
+            expr = self.sheet.get_parsed(self.drag)
+            assert isinstance(expr, tuple)
+            for x, y in iter_range(self.cursor, self.drag):
+                shifted = shift_refs(expr, (x - self.drag[0], y - self.drag[1]))
+                self.sheet.set((x, y), '=' + unparse(shifted))
+        else:
+            for x, y in iter_range(self.cursor, self.drag):
+                self.sheet.set((x, y), raw)
         self.drag = None
 
     def cancel_drag(self):
