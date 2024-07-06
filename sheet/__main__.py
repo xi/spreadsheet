@@ -4,11 +4,12 @@ import boon
 
 from .csv import load_csv
 from .expression import x2col
+from .input import Input
 from .term import align_center
 from .term import align_left
 from .term import align_right
-from .term import red
 from .term import invert
+from .term import red
 
 
 def to_cell(value: float|int|str|None|Exception, width: int) -> str:
@@ -34,6 +35,7 @@ class App(boon.App):
         self.cursor_x = 0
         self.cursor_y = 0
         self.widths = {}
+        self.input = None
 
     def scroll_into_view(self, rows, cols):
         if self.cursor_y < self.y0:
@@ -89,7 +91,10 @@ class App(boon.App):
                 lines[-1] += cell
                 x += 1
 
-        lines.append(self.sheet.get_raw((self.cursor_x, self.cursor_y)))
+        if self.input:
+            lines.append(self.input.render(cols))
+        else:
+            lines.append(self.sheet.get_raw((self.cursor_x, self.cursor_y)))
 
         return lines
 
@@ -103,7 +108,17 @@ class App(boon.App):
         old = self.get_width(x)
         self.set_width(x, old + d)
 
+    def submit_input(self):
+        self.sheet.set((self.cursor_x, self.cursor_y), self.input.value)
+        self.input = None
+
+    def cancel_input(self):
+        self.input = None
+
     def on_key(self, key):
+        if self.input:
+            return self.input.on_key(key)
+
         if key == 'q':
             self.running = False
         elif key == boon.KEY_DOWN:
@@ -126,7 +141,10 @@ class App(boon.App):
             pass
             # self.set_width(self.cursor_x, max()  # TODO auto width
         elif key == '\n':
-            pass  # TODO: edit
+            raw = self.sheet.get_raw((self.cursor_x, self.cursor_y))
+            self.input = Input(raw, self.submit_input, self.cancel_input)
+        elif key == boon.KEY_DEL:
+            self.sheet.set((self.cursor_x, self.cursor_y), '')
 
 
 app = App()
