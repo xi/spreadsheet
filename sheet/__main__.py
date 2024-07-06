@@ -59,7 +59,7 @@ class App(boon.App):
         else:
             widths = [self.get_width(x) for x in range(self.x0, self.cursor_x + 1)]
             offset = 0
-            while sum(widths[offset:]) > cols:
+            while 4 + sum(widths[offset:]) > cols:
                 offset += 1
             self.x0 += offset
 
