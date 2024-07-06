@@ -36,6 +36,10 @@ class App(boon.App):
         self.widths = {}
         self.input = None
 
+    @property
+    def cursor(self):
+        return self.cursor_x, self.cursor_y
+
     def scroll_into_view(self, rows, cols):
         if self.cursor_y < self.y0:
             self.y0 = self.cursor_y
@@ -92,7 +96,7 @@ class App(boon.App):
         if self.input:
             lines.append(self.input.render(cols))
         else:
-            lines.append(self.sheet.get_raw((self.cursor_x, self.cursor_y)))
+            lines.append(self.sheet.get_raw(self.cursor))
 
         return lines
 
@@ -107,7 +111,7 @@ class App(boon.App):
         self.set_width(x, old + d)
 
     def submit_input(self):
-        self.sheet.set((self.cursor_x, self.cursor_y), self.input.value)
+        self.sheet.set(self.cursor, self.input.value)
         self.input = None
 
     def cancel_input(self):
@@ -146,12 +150,12 @@ class App(boon.App):
         elif key == '<':
             self.change_width(self.cursor_x, -1)
         elif key == '\n':
-            raw = self.sheet.get_raw((self.cursor_x, self.cursor_y))
+            raw = self.sheet.get_raw(self.cursor)
             self.input = Input(raw, self.submit_input, self.cancel_input, full=True)
         elif key in '=0123456789':
             self.input = Input(key, self.submit_input, self.cancel_input, full=False)
         elif key == boon.KEY_DEL:
-            self.sheet.set((self.cursor_x, self.cursor_y), '')
+            self.sheet.set(self.cursor, '')
 
 
 app = App()
