@@ -1,7 +1,7 @@
 def align_right(s, width):
     if len(s) > width:
         s = '###'
-    return ' ' + ' ' * (width - len(s) - 1) + s
+    return ' ' * (width - len(s)) + s
 
 
 def align_left(s, width):

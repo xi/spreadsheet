@@ -13,10 +13,9 @@ from .term import red
 
 
 def to_cell(value: float|int|str|None|Exception, width: int) -> str:
-    if isinstance(value, float):
-        return align_right(str(value), width)
-    elif isinstance(value, int):
-        return align_right(str(value), width)
+    if isinstance(value, float|int):
+        s = f'{{:{width}.{min(width - 2, 6)}g}}'.format(value)
+        return align_right(s, width)
     elif isinstance(value, str):
         return align_left(value, width)
     elif value is None:
