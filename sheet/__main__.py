@@ -37,8 +37,9 @@ def to_cell(value: float|int|str|None|Exception, width: int) -> str:
 class App(boon.App):
     def __init__(self, path=None):
         super().__init__()
+        self.path = path or ''
         if path:
-            with open(path) as fh:
+            with open(self.path) as fh:
                 self.sheet = load_csv(fh)
         else:
             self.sheet = Sheet()
@@ -139,6 +140,17 @@ class App(boon.App):
     def cancel_input(self):
         self.input = None
 
+    def submit_write(self):
+        with open(self.input.value, 'w') as fh:
+            dump_csv(self.sheet, fh)
+        self.input = None
+
+    def submit_write_eval(self):
+        self.path = self.input.value
+        with open(self.path, 'w') as fh:
+            dump_csv(self.sheet, fh, display=True)
+        self.input = None
+
     def submit_drag(self):
         raw = self.sheet.get_raw(self.drag)
         if raw.startswith('='):
@@ -201,11 +213,27 @@ class App(boon.App):
             self.sheet.set(self.cursor, '')
         elif key == '#':
             self.drag = self.cursor
+        elif key == 'w':
+            self.input = Input(
+                self.path,
+                self.submit_write,
+                self.cancel_input,
+                prompt='Write: ',
+                full=True,
+            )
+        elif key == 'W':
+            self.input = Input(
+                self.path,
+                self.submit_write_eval,
+                self.cancel_input,
+                prompt='Write (evaluated): ',
+                full=True,
+            )
 
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('path', nargs='?')
+    parser.add_argument('path', default='', nargs='?')
     parser.add_argument('--eval')
     return parser
 
