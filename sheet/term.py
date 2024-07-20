@@ -1,19 +1,25 @@
+from wcwidth import wcswidth
+
+
 def align_right(s, width):
-    if len(s) > width:
-        s = '###'
-    return ' ' * (width - len(s)) + s
+    w = wcswidth(s)
+    if w > width:
+        return '#' * width
+    return ' ' * (width - w) + s
 
 
 def align_left(s, width):
-    if len(s) > width:
-        s = '###'
-    return s + ' ' * (width - len(s))
+    w = wcswidth(s)
+    if w > width:
+        return '#' * width
+    return s + ' ' * (width - w)
 
 
 def align_center(s, width):
-    if len(s) > width:
-        s = '###'
-    t = width - len(s)
+    w = wcswidth(s)
+    if w > width:
+        return '#' * width
+    t = width - w
     return ' ' * (t // 2) + s + ' ' * (t - t // 2)
 
 
