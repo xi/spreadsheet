@@ -1,13 +1,16 @@
+import argparse
 import sys
 
 import boon
 
+from .csv import dump_csv
 from .csv import load_csv
 from .expression import shift_refs
 from .expression import unparse
 from .expression import x2col
 from .input import Input
 from .sheet import Bar
+from .sheet import Sheet
 from .sheet import iter_range
 from .term import align_center
 from .term import align_left
@@ -32,10 +35,13 @@ def to_cell(value: float|int|str|None|Exception, width: int) -> str:
 
 
 class App(boon.App):
-    def __init__(self):
+    def __init__(self, path=None):
         super().__init__()
-        with open(sys.argv[1]) as fh:
-            self.sheet = load_csv(fh)
+        if path:
+            with open(path) as fh:
+                self.sheet = load_csv(fh)
+        else:
+            self.sheet = Sheet()
         self.x0 = 0
         self.y0 = 0
         self.cursor_x = 0
@@ -197,5 +203,22 @@ class App(boon.App):
             self.drag = self.cursor
 
 
-app = App()
-app.run()
+def get_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', nargs='?')
+    parser.add_argument('--eval')
+    return parser
+
+
+if __name__ == '__main__':
+    args = get_parser().parse_args()
+    if args.eval:
+        if not args.path:
+            raise ValueError('path missing')
+        with open(args.path) as fh:
+            sheet = load_csv(fh)
+        with open(args.eval, 'w') as fh:
+            dump_csv(sheet, fh, display=True)
+    else:
+        app = App(args.path)
+        app.run()
