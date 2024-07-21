@@ -46,6 +46,8 @@ def col2x(col):
 
 
 def x2col(x):
+    if x < 0:
+        return '#'
     a, b = divmod(x, len(string.ascii_uppercase))
     s = string.ascii_uppercase[b]
     while a:
