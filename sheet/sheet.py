@@ -11,9 +11,12 @@ class Bar:
 
     def render(self, width):
         value = max(0, min(1, self.value))
-        x = int(value * width * (len(BLOCKS) - 1))
+        x = round(value * width * (len(BLOCKS) - 1))
         a, b = divmod(x, len(BLOCKS) - 1)
-        return a * BLOCKS[-1] + BLOCKS[b] + (width - a - 1) * BLOCKS[0]
+        if a == width:
+            return a * BLOCKS[-1]
+        else:
+            return a * BLOCKS[-1] + BLOCKS[b] + (width - a - 1) * BLOCKS[0]
 
 
 def iter_range(cell1, cell2):
