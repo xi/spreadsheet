@@ -71,7 +71,7 @@ class Sheet:
     def call_function(
         self, name: str, args: list[tuple], _commas: list[str]
     ) -> float|int|str|Bar:
-        if name == 'sum':
+        if name.lower() == 'sum':
             if len(args) != 1 or args[0][0] != 'range':
                 raise ValueError(args)
             _, ref1, ref2 = args[0]
@@ -79,13 +79,13 @@ class Sheet:
                 to_number(self.get_value(ref))
                 for ref in iter_range(ref1[1], ref2[1])
             )
-        elif name == 'power':
+        elif name.lower() == 'power':
             if len(args) != 2:
                 raise ValueError(args)
             base = to_number(self.evaluate(args[0]))
             exp = to_number(self.evaluate(args[1]))
             return base ** exp
-        elif name == 'bar':
+        elif name.lower() == 'bar':
             if len(args) != 1:
                 raise ValueError(args)
             return Bar(to_number(self.evaluate(args[0])))
