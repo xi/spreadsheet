@@ -238,7 +238,7 @@ def get_parser():
     return parser
 
 
-if __name__ == '__main__':
+def main():
     args = get_parser().parse_args()
     if args.eval:
         if not args.path:
@@ -250,3 +250,7 @@ if __name__ == '__main__':
     else:
         app = App(args.path)
         app.run()
+
+
+if __name__ == '__main__':
+    main()

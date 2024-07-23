@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spreadsheet"
+version = "0.0.0"
+description = " terminal spreadsheet application "
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Tobias Bengfort", email = "tobias.bengfort@posteo.de"}
+]
+dependencies = [
+    "boon-term",
+    "wcwidth",
+]
+
+[project.urls]
+Homepage = "https://github.com/xi/spreadsheet"
+
+[project.scripts]
+sheet = "sheet.__main__:main"
+
+[tool.setuptools]
+packages = ["sheet"]
