@@ -1,6 +1,8 @@
 
 from .expression import ParseError
 from .expression import parse
+from .expression import shift_refs
+from .expression import unparse
 
 BLOCKS = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉', '█']
 
@@ -129,6 +131,13 @@ class Sheet:
             del self.raw[cell]
             del self.parsed[cell]
         self.cache = {}
+
+    def set_shifted(self, cell, raw: str, shift) -> str:
+        if raw.startswith('='):
+            expr = self.parse(raw)
+            shifted = shift_refs(expr, shift)
+            raw = '=' + unparse(shifted)
+        self.set(cell, raw)
 
     def get_raw(self, cell) -> str:
         return self.raw.get(cell, '')

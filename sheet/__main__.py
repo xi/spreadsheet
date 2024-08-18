@@ -5,8 +5,6 @@ from wcwidth import wcswidth
 
 from .csv import dump_csv
 from .csv import load_csv
-from .expression import shift_refs
-from .expression import unparse
 from .expression import x2col
 from .input import Input
 from .sheet import Bar
@@ -182,15 +180,9 @@ class App(boon.App):
 
     def submit_drag(self):
         raw = self.sheet.get_raw(self.drag)
-        if raw.startswith('='):
-            expr = self.sheet.get_parsed(self.drag)
-            assert isinstance(expr, tuple)
-            for x, y in iter_range(self.cursor, self.drag):
-                shifted = shift_refs(expr, (x - self.drag[0], y - self.drag[1]))
-                self.sheet.set((x, y), '=' + unparse(shifted))
-        else:
-            for x, y in iter_range(self.cursor, self.drag):
-                self.sheet.set((x, y), raw)
+        for x, y in iter_range(self.cursor, self.drag):
+            shift = (x - self.drag[0], y - self.drag[1])
+            self.sheet.set_shifted((x, y), raw, shift)
         self.drag = None
 
     def cancel_drag(self):
