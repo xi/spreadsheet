@@ -2,6 +2,7 @@ import boon
 from wcwidth import wcswidth
 
 RED = boon.get_cap('setaf', 1)
+GREEN = boon.get_cap('setaf', 2)
 BLUE = boon.get_cap('setaf', 4)
 INVERT = boon.get_cap('rev')
 RESET = boon.get_cap('sgr0')
@@ -31,6 +32,10 @@ def align_center(s, width):
 
 def red(s):
     return RED + s + RESET
+
+
+def green(s):
+    return GREEN + s + RESET
 
 
 def blue(s):

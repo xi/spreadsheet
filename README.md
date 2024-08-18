@@ -20,6 +20,9 @@ option.
     enter. The area between the two cells will be filled with the formula from
     the first cell. References to rows and columns that are not prefixed with
     `$` will be adapted.
+-   `v` - Start visual mode (green). You can then use `y` to copy ("yank") or
+    `d` to cut ("delete") the selected cells. After that, you can use `p` to
+    paste the copied contents somewhere else.
 -   Delete - clear the current cell
 -   `>`/`<` - increase/decrease the width of the current column
 -   `w` - Write the sheet to a file (source form).

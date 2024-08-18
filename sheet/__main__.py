@@ -14,6 +14,7 @@ from .term import align_center
 from .term import align_left
 from .term import align_right
 from .term import blue
+from .term import green
 from .term import invert
 from .term import red
 
@@ -26,6 +27,7 @@ page up/down - move one screen up/down
 enter        - start edit mode
 =, -, 0-9    - start quick edit mode
 #            - start drag mode
+v            - start visual mode
 del          - delete
 >, <         - adjust column width
 w            - write to file (source form)
@@ -65,6 +67,9 @@ class App(boon.App):
         self.widths = {}
         self.input = None
         self.drag = None
+        self.visual = None
+        self.clipboard_pos = (0, 0)
+        self.clipboard = [[]]
         self.help = False
 
     @property
@@ -138,6 +143,14 @@ class App(boon.App):
                     and y <= max(self.cursor_y, self.drag[1])
                 ):
                     cell = blue(cell)
+                elif (
+                    self.visual
+                    and min(self.cursor_x, self.visual[0]) <= x
+                    and x <= max(self.cursor_x, self.visual[0])
+                    and min(self.cursor_y, self.visual[1]) <= y
+                    and y <= max(self.cursor_y, self.visual[1])
+                ):
+                    cell = green(cell)
                 if x == self.cursor_x and y == self.cursor_y:
                     cell = invert(cell)
                 lines[-1] += cell
@@ -188,6 +201,25 @@ class App(boon.App):
     def cancel_drag(self):
         self.drag = None
 
+    def copy(self):
+        x1, x2 = sorted((self.cursor_x, self.visual[0]))
+        y1, y2 = sorted((self.cursor_y, self.visual[1]))
+        self.clipboard_pos = (x1, y1)
+        self.clipboard = [
+            [self.sheet.get_raw((x, y)) for x in range(x1, x2 + 1)]
+            for y in range(y1, y2 + 1)
+        ]
+
+    def paste(self):
+        shift = (
+            self.cursor_x - self.clipboard_pos[0],
+            self.cursor_y - self.clipboard_pos[1],
+        )
+        for dy, row in enumerate(self.clipboard):
+            for dx, raw in enumerate(row):
+                pos = (self.cursor_x + dx, self.cursor_y + dy)
+                self.sheet.set_shifted(pos, raw, shift)
+
     def on_key(self, key):
         if self.input:
             if not self.input.full and key in [
@@ -225,6 +257,18 @@ class App(boon.App):
                 self.submit_drag()
             elif key == boon.KEY_ESC:
                 self.cancel_drag()
+        elif self.visual is not None:
+            if key in ['y', 'd']:
+                self.copy()
+                if key == 'd':
+                    for pos in iter_range(self.cursor, self.visual):
+                        self.sheet.set(pos, '')
+                self.cursor_x, self.cursor_y = self.visual
+                self.visual = None
+            elif key in ['\n', boon.KEY_ESC]:
+                self.visual = None
+        elif key == 'p':
+            self.paste()
         elif key == '>':
             self.change_width(self.cursor_x, 1)
         elif key == '<':
@@ -238,6 +282,8 @@ class App(boon.App):
             self.sheet.set(self.cursor, '')
         elif key == '#':
             self.drag = self.cursor
+        elif key == 'v':
+            self.visual = self.cursor
         elif key == 'w':
             self.input = Input(
                 self.path,
