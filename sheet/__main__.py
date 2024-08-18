@@ -2,6 +2,7 @@ import argparse
 import sys
 
 import boon
+from wcwidth import wcswidth
 
 from .csv import dump_csv
 from .csv import load_csv
@@ -18,6 +19,23 @@ from .term import align_right
 from .term import blue
 from .term import invert
 from .term import red
+
+HELP = """
+Help
+---
+
+arrow keys   - move the cursor
+page up/down - move one screen up/down
+enter        - start edit mode
+=, -, 0-9    - start quick edit mode
+#            - start drag mode
+del          - delete
+>, <         - adjust column width
+w            - write to file (source form)
+W            - write to file (evaluated form)
+h            - show help
+q            - quit
+"""
 
 
 def to_cell(value: float|int|str|None|Exception, width: int) -> str:
@@ -50,6 +68,7 @@ class App(boon.App):
         self.widths = {}
         self.input = None
         self.drag = None
+        self.help = False
 
     @property
     def cursor(self):
@@ -71,6 +90,17 @@ class App(boon.App):
             self.x0 += offset
 
     def render(self, rows, cols):
+        if self.help:
+            lines = HELP.strip().split('\n')
+            max_width = max(wcswidth(line) for line in lines)
+            x_offset = max(0, cols - max_width) // 2
+            y_offset = max(0, rows - len(lines)) // 2
+            for _ in range(y_offset):
+                yield ''
+            for line in lines:
+                yield ' ' * x_offset + line
+            return
+
         self.scroll_into_view(rows, cols)
 
         lines = []
@@ -121,7 +151,7 @@ class App(boon.App):
         else:
             lines.append(self.sheet.get_raw(self.cursor))
 
-        return lines
+        yield from lines
 
     def get_width(self, x):
         return self.widths.get(x, 10)
@@ -181,6 +211,10 @@ class App(boon.App):
                 self.on_key(key)
             else:
                 self.input.on_key(key)
+        elif key == 'h':
+            self.help = not self.help
+        elif key == 'q' and self.help:
+            self.help = False
         elif key == 'q':
             self.running = False
         elif key == boon.KEY_DOWN:

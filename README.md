@@ -16,15 +16,16 @@ option.
     mode. The difference between the two modes is the behavior of arrow keys:
     In full edit mode, arrow keys move the text cursor. In quick edit mode,
     arrow keys move the cell cursor (after submitting the changes).
--   `q` - quit
--   `>`/`<` - increase/decrease the width of the current column
--   Delete - clear the current cell
 -   `#` - Start drag mode (blue). Move the cursor to a different cell and press
     enter. The area between the two cells will be filled with the formula from
     the first cell. References to rows and columns that are not prefixed with
     `$` will be adapted.
+-   Delete - clear the current cell
+-   `>`/`<` - increase/decrease the width of the current column
 -   `w` - Write the sheet to a file (source form).
 -   `W` - Write the sheet to a file (evaluated form).
+-   `q` - show help
+-   `q` - quit
 
 ## Formulas
 
