@@ -56,8 +56,7 @@ class App(boon.App):
         super().__init__()
         self.path = path or ''
         if path:
-            with open(self.path) as fh:
-                self.sheet = load_csv(fh)
+            self.sheet = load_csv(self.path)
         else:
             self.sheet = Sheet()
         self.x0 = 0
@@ -181,14 +180,12 @@ class App(boon.App):
         self.input = None
 
     def submit_write(self):
-        with open(self.input.value, 'w') as fh:
-            dump_csv(self.sheet, fh)
+        self.path = self.input.value
+        dump_csv(self.sheet, self.input.value)
         self.input = None
 
     def submit_write_eval(self):
-        self.path = self.input.value
-        with open(self.path, 'w') as fh:
-            dump_csv(self.sheet, fh, display=True)
+        dump_csv(self.sheet, self.input.value, display=True)
         self.input = None
 
     def submit_drag(self):
@@ -314,10 +311,8 @@ def main():
     if args.eval:
         if not args.path:
             raise ValueError('path missing')
-        with open(args.path) as fh:
-            sheet = load_csv(fh)
-        with open(args.eval, 'w') as fh:
-            dump_csv(sheet, fh, display=True)
+        sheet = load_csv(args.path)
+        dump_csv(sheet, args.eval, display=True)
     else:
         app = App(args.path)
         app.run()
