@@ -1,3 +1,4 @@
+import math
 
 from .expression import ParseError
 from .expression import parse
@@ -19,6 +20,13 @@ class Bar:
             return a * BLOCKS[-1]
         else:
             return a * BLOCKS[-1] + BLOCKS[b] + (width - a - 1) * BLOCKS[0]
+
+
+FUNCTIONS = {
+    'sum': (sum, 'range'),
+    'power': (math.pow, 2),
+    'bar': (Bar, 1),
+}
 
 
 def iter_range(cell1, cell2):
@@ -73,26 +81,19 @@ class Sheet:
     def call_function(
         self, name: str, args: list[tuple], _commas: list[str]
     ) -> float|int|str|Bar:
-        if name.lower() == 'sum':
+        fn, nargs = FUNCTIONS[name.lower()]
+        if nargs == 'range':
             if len(args) != 1 or args[0][0] != 'range':
                 raise ValueError(args)
             _, ref1, ref2 = args[0]
-            return sum(
+            return fn(
                 to_number(self.get_value(ref))
                 for ref in iter_range(ref1[1], ref2[1])
             )
-        elif name.lower() == 'power':
-            if len(args) != 2:
-                raise ValueError(args)
-            base = to_number(self.evaluate(args[0]))
-            exp = to_number(self.evaluate(args[1]))
-            return base ** exp
-        elif name.lower() == 'bar':
-            if len(args) != 1:
-                raise ValueError(args)
-            return Bar(to_number(self.evaluate(args[0])))
         else:
-            raise NameError(name)
+            if len(args) != nargs:
+                raise ValueError(args)
+            return fn(*[to_number(self.evaluate(a)) for a in args])
 
     def evaluate(self, expr: tuple) -> float|int|str|Bar:
         if expr[0] in ['int', 'float', 'str']:
