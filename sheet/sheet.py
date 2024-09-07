@@ -24,7 +24,14 @@ class Bar:
 
 FUNCTIONS = {
     'sum': (sum, 'range'),
+    'min': (min, 'range'),
+    'max': (max, 'range'),
     'power': (math.pow, 2),
+    'exp': (math.exp, 1),
+    'sin': (math.sin, 1),
+    'cos': (math.cos, 1),
+    'tan': (math.tan, 1),
+    'log': (math.log, 1),
     'bar': (Bar, 1),
 }
 
