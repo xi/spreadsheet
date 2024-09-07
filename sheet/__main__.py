@@ -255,9 +255,9 @@ class App(boon.App):
             elif key == boon.KEY_ESC:
                 self.cancel_drag()
         elif self.visual is not None:
-            if key in ['y', 'd']:
+            if key in ['y', 'd', boon.KEY_DEL]:
                 self.copy()
-                if key == 'd':
+                if key in ['d', boon.KEY_DEL]:
                     for pos in iter_range(self.cursor, self.visual):
                         self.sheet.set(pos, '')
                 self.cursor_x, self.cursor_y = self.visual
