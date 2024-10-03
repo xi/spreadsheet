@@ -42,7 +42,15 @@ Cells can have the following values:
 Formulas can contains the following functions:
 
 -   `sum(A1:B2)` - calculate the sum of all fields from the given range
--   `bar(A1)` - draw a bar for a value between 0 and 1
+-   `min(A1:B2)` - calculate the minimum of all fields from the given range
+-   `max(A1:B2)` - calculate the maximum of all fields from the given range
+-   `power(a, b)` - calculate `a` to the power of `b`
+-   `exp(a)` - exponential function
+-   `sin(a)` - sine function
+-   `cos(a)` - cosine function
+-   `tan(a)` - tangent function
+-   `log(a)` - natural logarithm
+-   `bar(a)` - draw a bar for a value between 0 and 1
 
 ## Prior art
 
