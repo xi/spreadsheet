@@ -27,7 +27,7 @@ option.
 -   `>`/`<` - increase/decrease the width of the current column
 -   `w` - Write the sheet to a file (source form).
 -   `W` - Write the sheet to a file (evaluated form).
--   `q` - show help
+-   `h` - show help
 -   `q` - quit
 
 ## Formulas
