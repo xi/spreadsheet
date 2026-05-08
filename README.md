@@ -52,7 +52,9 @@ Formulas can contains the following functions:
 -   `log(a)` - natural logarithm
 -   `bar(a)` - draw a bar for a value between 0 and 1
 
-## Prior art
+## Similar projects
 
 -   [sc](http://www.ibiblio.org/pub/Linux/apps/financial/spreadsheet/!INDEX.html) - spreadsheet calculator
+-   [sc-im](https://github.com/andmarti1424/sc-im)
 -   [visidata](https://www.visidata.org/) - interactivly explore tabular data
+-   [cell](https://github.com/garritfra/cell)
