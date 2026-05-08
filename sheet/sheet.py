@@ -134,7 +134,6 @@ class Sheet:
         if raw:
             self.raw[cell] = raw
             self.parsed[cell] = self.parse(raw)
-            x, y = cell
         elif cell in self.raw:
             del self.raw[cell]
             del self.parsed[cell]
