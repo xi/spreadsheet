@@ -8,8 +8,9 @@ from .csv import load_csv
 from .expression import x2col
 from .input import Input
 from .sheet import Bar
-from .sheet import Sheet
+from .sheet import Value
 from .sheet import iter_range
+from .sheet import Sheet
 from .term import align_center
 from .term import align_left
 from .term import align_right
@@ -37,8 +38,8 @@ q            - quit
 """
 
 
-def to_cell(value: float|int|str|None|Exception, width: int) -> str:
-    if isinstance(value, float|int):
+def to_cell(value: Value, width: int) -> str:
+    if isinstance(value, float | int):
         s = f'{{:{width}.{min(width - 2, 6)}g}}'.format(value)
         return align_right(s, width)
     elif isinstance(value, str):

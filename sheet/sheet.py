@@ -1,9 +1,8 @@
 import math
+from collections.abc import Callable
+from collections.abc import Generator
 
-from .expression import ParseError
-from .expression import parse
-from .expression import shift_refs
-from .expression import unparse
+from . import expression
 
 BLOCKS = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉', '█']
 
@@ -22,7 +21,13 @@ class Bar:
             return a * BLOCKS[-1] + BLOCKS[b] + (width - a - 1) * BLOCKS[0]
 
 
-FUNCTIONS = {
+Cell = tuple[int, int]
+RawValue = float | int | str
+Parsed = RawValue | expression.Expr | expression.ParseError
+Value = RawValue | Bar | None | Exception
+
+
+FUNCTIONS: dict[str, tuple[Callable, str | int]] = {
     'sum': (sum, 'range'),
     'min': (min, 'range'),
     'max': (max, 'range'),
@@ -36,7 +41,7 @@ FUNCTIONS = {
 }
 
 
-def iter_range(cell1, cell2):
+def iter_range(cell1: Cell, cell2: Cell) -> Generator[Cell, None, None]:
     x1, y1 = cell1
     x2, y2 = cell2
     if x1 > x2:
@@ -48,7 +53,7 @@ def iter_range(cell1, cell2):
             yield x, y
 
 
-def to_number(value: float|int|str|Bar|None|Exception) -> float|int:
+def to_number(value: Value) -> float | int:
     if isinstance(value, float):
         return value
     elif isinstance(value, int):
@@ -65,16 +70,16 @@ def to_number(value: float|int|str|Bar|None|Exception) -> float|int:
 
 class Sheet:
     def __init__(self):
-        self.raw = {}
-        self.parsed = {}
-        self.cache = {}
+        self.raw: dict[Cell, str] = {}
+        self.parsed: dict[Cell, Parsed] = {}
+        self.cache: dict[Cell, Value] = {}
 
-    def parse(self, raw: str) -> tuple|float|int|str:
+    def parse(self, raw: str) -> Parsed:
         if raw.startswith('='):
             try:
-                return parse(raw[1:])
-            except ParseError as err:
-                return ('err', err)
+                return expression.parse(raw[1:])
+            except expression.ParseError as err:
+                return err
         try:
             return int(raw, 10)
         except ValueError:
@@ -85,52 +90,43 @@ class Sheet:
             pass
         return raw
 
-    def call_function(
-        self, name: str, args: list[tuple], _commas: list[str]
-    ) -> float|int|str|Bar:
+    def call_function(self, name: str, args: list[expression.Expr]) -> Value:
         fn, nargs = FUNCTIONS[name.lower()]
         if nargs == 'range':
-            if len(args) != 1 or args[0][0] != 'range':
+            if len(args) != 1 or not isinstance(args[0], expression.Range):
                 raise ValueError(args)
-            _, ref1, ref2 = args[0]
             return fn(
                 to_number(self.get_value(ref))
-                for ref in iter_range(ref1[1], ref2[1])
+                for ref in iter_range(args[0].start.cell, args[0].end.cell)
             )
         else:
             if len(args) != nargs:
                 raise ValueError(args)
             return fn(*[to_number(self.evaluate(a)) for a in args])
 
-    def evaluate(self, expr: tuple) -> float|int|str|Bar:
-        if expr[0] in ['int', 'float', 'str']:
-            return expr[1]
-        elif expr[0] == 'ref':
-            return self.get_value(expr[1])
-        elif expr[0] == 'brace':
-            return self.evaluate(expr[1])
-        elif expr[0] == 'err':
-            raise expr[1]
-        elif expr[0] == '+':
-            lhs = to_number(self.evaluate(expr[1]))
-            rhs = to_number(self.evaluate(expr[2]))
-            return lhs + rhs
-        elif expr[0] == '-':
-            lhs = to_number(self.evaluate(expr[1]))
-            rhs = to_number(self.evaluate(expr[2]))
-            return lhs - rhs
-        elif expr[0] == '*':
-            lhs = to_number(self.evaluate(expr[1]))
-            rhs = to_number(self.evaluate(expr[2]))
-            return lhs * rhs
-        elif expr[0] == '/':
-            lhs = to_number(self.evaluate(expr[1]))
-            rhs = to_number(self.evaluate(expr[2]))
-            return lhs / rhs
-        else:
-            return self.call_function(*expr)
+    def evaluate(self, expr: expression.Expr) -> Value:
+        if isinstance(expr, (expression.Int, expression.Float, expression.String)):
+            return expr.value
+        elif isinstance(expr, expression.Ref):
+            return self.get_value(expr.cell)
+        elif isinstance(expr, expression.Brace):
+            return self.evaluate(expr.inner)
+        elif isinstance(expr, expression.Op):
+            lhs = to_number(self.evaluate(expr.lhs))
+            rhs = to_number(self.evaluate(expr.rhs))
+            if expr.op == '+':
+                return lhs + rhs
+            elif expr.op == '-':
+                return lhs - rhs
+            elif expr.op == '*':
+                return lhs * rhs
+            elif expr.op == '/':
+                return lhs / rhs
+        elif isinstance(expr, expression.Call):
+            return self.call_function(expr.name, expr.args)
+        raise ValueError(expr)
 
-    def set(self, cell, raw: str):
+    def set(self, cell: Cell, raw: str):
         if raw:
             self.raw[cell] = raw
             self.parsed[cell] = self.parse(raw)
@@ -139,22 +135,23 @@ class Sheet:
             del self.parsed[cell]
         self.cache = {}
 
-    def set_shifted(self, cell, raw: str, shift) -> str:
+    def set_shifted(self, cell: Cell, raw: str, shift: Cell):
         if raw.startswith('='):
             expr = self.parse(raw)
-            shifted = shift_refs(expr, shift)
-            raw = '=' + unparse(shifted)
+            if isinstance(expr, expression.Expr):
+                shifted = expr.shift_refs(shift)
+                raw = f'={shifted.unparse()}'
         self.set(cell, raw)
 
-    def get_raw(self, cell) -> str:
+    def get_raw(self, cell: Cell) -> str:
         return self.raw.get(cell, '')
 
-    def get_parsed(self, cell) -> tuple|float|int|str|None:
+    def get_parsed(self, cell: Cell) -> Parsed | None:
         return self.parsed.get(cell)
 
-    def get_value(self, cell) -> float|int|str|Bar|None|Exception:
+    def get_value(self, cell: Cell) -> Value:
         parsed = self.get_parsed(cell)
-        if isinstance(parsed, tuple):
+        if isinstance(parsed, expression.Expr):
             if cell not in self.cache:
                 self.cache[cell] = ReferenceError(cell)
                 try:
