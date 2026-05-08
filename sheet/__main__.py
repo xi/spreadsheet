@@ -231,10 +231,11 @@ class App(boon.App):
                 self.on_key(key)
             else:
                 self.input.on_key(key)
+        elif self.help:
+            if key in ['h', 'q']:
+                self.help = False
         elif key == 'h':
-            self.help = not self.help
-        elif key == 'q' and self.help:
-            self.help = False
+            self.help = True
         elif key == 'q':
             self.running = False
         elif key == boon.KEY_DOWN:
